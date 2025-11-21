@@ -7,6 +7,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconPencil,
+  IconTrash,
 } from "@tabler/icons-react";
 import {
   ColumnDef,
@@ -26,6 +27,15 @@ import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { EditBandDialog } from "@/components/ui/edit-band-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,21 +54,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-export const schema = z.object({
-  id: z.number(),
-  bandName: z.string(),
-  showDate: z.string(),
-  showTime: z.string(),
-  stage: z.string(),
-});
+import { Band } from "@/types";
+import { deleteBand } from "@/supabase/manage-band-data";
 
 export function DataTable({
   data: initialData,
   searchQuery = "",
+  onBandUpdated,
 }: {
-  data: z.infer<typeof schema>[];
+  data: z.infer<typeof Band>[];
   searchQuery?: string;
+  onBandUpdated?: () => void;
 }) {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -71,13 +77,40 @@ export function DataTable({
     pageSize: 10,
   });
   const [editingBand, setEditingBand] = React.useState<z.infer<
-    typeof schema
+    typeof Band
   > | null>(null);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [bandToDelete, setBandToDelete] = React.useState<z.infer<
+    typeof Band
+  > | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
 
-  const handleEditClick = (band: z.infer<typeof schema>) => {
+  const handleEditClick = (band: z.infer<typeof Band>) => {
     setEditingBand(band);
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteClick = (band: z.infer<typeof Band>) => {
+    setBandToDelete(band);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!bandToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteBand(bandToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setBandToDelete(null);
+      onBandUpdated?.();
+    } catch (error) {
+      console.error("Error deleting band:", error);
+      alert("Failed to delete band. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   // Update column filters when search query changes
@@ -85,7 +118,7 @@ export function DataTable({
     if (searchQuery) {
       setColumnFilters([
         {
-          id: "bandName",
+          id: "name",
           value: searchQuery,
         },
       ]);
@@ -94,7 +127,7 @@ export function DataTable({
     }
   }, [searchQuery]);
 
-  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  const columns: ColumnDef<z.infer<typeof Band>>[] = [
     {
       id: "edit",
       header: () => null,
@@ -113,20 +146,18 @@ export function DataTable({
       enableHiding: false,
     },
     {
-      accessorKey: "bandName",
+      accessorKey: "name",
       header: "Band Name",
-      cell: ({ row }) => row.original.bandName,
+      cell: ({ row }) => row.original.name,
       filterFn: (row, id, value) => {
-        return row.original.bandName
-          .toLowerCase()
-          .includes(value.toLowerCase());
+        return row.original.name.toLowerCase().includes(value.toLowerCase());
       },
     },
     {
-      accessorKey: "showDate",
+      accessorKey: "show_date",
       header: "Show Date",
       cell: ({ row }) => {
-        const date = new Date(row.original.showDate);
+        const date = new Date(row.original.show_date);
         return date.toLocaleDateString("en-US", {
           year: "numeric",
           month: "long",
@@ -135,9 +166,9 @@ export function DataTable({
       },
     },
     {
-      accessorKey: "showTime",
+      accessorKey: "show_time",
       header: "Show Time",
-      cell: ({ row }) => row.original.showTime,
+      cell: ({ row }) => row.original.show_time,
     },
     {
       accessorKey: "stage",
@@ -146,16 +177,34 @@ export function DataTable({
         <Badge
           variant="outline"
           className={`text-muted-foreground px-1.5 ${
-            row.original.stage === "Lawn"
+            row.original.stage === "lawn"
               ? "bg-neutral-950"
-              : row.original.stage === "Upstairs"
+              : row.original.stage === "upstairs"
               ? "bg-stone-900"
               : "bg-slate-950"
           }`}
         >
-          {row.original.stage}
+          {row.original.stage.charAt(0).toUpperCase() +
+            row.original.stage.slice(1)}
         </Badge>
       ),
+    },
+    {
+      id: "delete",
+      header: () => null,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => handleDeleteClick(row.original)}
+        >
+          <IconTrash className="h-4 w-4" />
+          <span className="sr-only">Delete</span>
+        </Button>
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
   ];
 
@@ -308,8 +357,42 @@ export function DataTable({
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
           band={editingBand}
+          onBandUpdated={onBandUpdated}
         />
       )}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Delete Band</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{" "}
+              <span className="font-semibold">{bandToDelete?.name}</span>? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={isDeleting}
+                onClick={() => {
+                  setBandToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

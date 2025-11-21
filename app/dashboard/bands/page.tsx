@@ -2,15 +2,32 @@
 
 import * as React from "react";
 import { DataTable } from "@/components/data-table";
-import data from "../data.json";
+import { fetchBands } from "@/supabase/fetchBands";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AddBandDialog } from "@/components/ui/add-band-dialog";
 import { IconSearch } from "@tabler/icons-react";
+import { useEffect } from "react";
+import { Band } from "@/types";
+import { z } from "zod";
 
 export default function BandsPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [bands, setBands] = React.useState<z.infer<typeof Band>[]>([]);
+
+  const loadBands = async () => {
+    try {
+      const bandsData = await fetchBands();
+      setBands(bandsData);
+    } catch (error) {
+      console.error("Error fetching bands:", error);
+    }
+  };
+
+  useEffect(() => {
+    loadBands();
+  }, []);
 
   return (
     <div>
@@ -27,8 +44,16 @@ export default function BandsPage() {
         </div>
         <Button onClick={() => setIsDialogOpen(true)}>Add Band</Button>
       </div>
-      <DataTable data={data} searchQuery={searchQuery} />
-      <AddBandDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <DataTable
+        data={bands}
+        searchQuery={searchQuery}
+        onBandUpdated={loadBands}
+      />
+      <AddBandDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onBandAdded={loadBands}
+      />
     </div>
   );
 }

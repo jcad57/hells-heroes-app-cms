@@ -20,12 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { updateBand } from "@/supabase/manage-band-data";
 
 interface BandData {
   id: number;
-  bandName: string;
-  showDate: string;
-  showTime: string;
+  name: string;
+  show_date: string;
+  show_time: string;
   stage: string;
 }
 
@@ -33,13 +34,56 @@ interface EditBandDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   band: BandData;
+  onBandUpdated?: () => void; // Callback to refresh the bands list
 }
 
 export function EditBandDialog({
   open,
   onOpenChange,
   band,
+  onBandUpdated,
 }: EditBandDialogProps) {
+  const [name, setName] = React.useState(band.name);
+  const [showDate, setShowDate] = React.useState(band.show_date);
+  const [showTime, setShowTime] = React.useState(band.show_time);
+  const [stage, setStage] = React.useState(band.stage);
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Update form values when band prop changes
+  React.useEffect(() => {
+    setName(band.name);
+    setShowDate(band.show_date);
+    setShowTime(band.show_time);
+    setStage(band.stage);
+  }, [band]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      await updateBand(band.id, {
+        name,
+        show_date: showDate,
+        show_time: showTime,
+        stage,
+      });
+
+      // Close dialog
+      onOpenChange(false);
+
+      // Refresh bands list
+      if (onBandUpdated) {
+        onBandUpdated();
+      }
+    } catch (error) {
+      console.error("Error updating band:", error);
+      alert("Failed to update band. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -50,14 +94,16 @@ export function EditBandDialog({
             you&apos;re done.
           </DialogDescription>
         </DialogHeader>
-        <form>
+        <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-3">
               <Label htmlFor="bandName">Band Name</Label>
               <Input
                 id="bandName"
                 name="bandName"
-                defaultValue={band.bandName}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
             </div>
             <div className="grid gap-3">
@@ -66,7 +112,9 @@ export function EditBandDialog({
                 id="showDate"
                 name="showDate"
                 type="date"
-                defaultValue={band.showDate}
+                value={showDate}
+                onChange={(e) => setShowDate(e.target.value)}
+                required
               />
             </div>
             <div className="grid gap-3">
@@ -74,28 +122,34 @@ export function EditBandDialog({
               <Input
                 id="showTime"
                 name="showTime"
-                defaultValue={band.showTime}
+                value={showTime}
+                onChange={(e) => setShowTime(e.target.value)}
+                required
               />
             </div>
             <div className="grid gap-3">
               <Label htmlFor="stage">Stage</Label>
-              <Select defaultValue={band.stage}>
+              <Select value={stage} onValueChange={setStage} required>
                 <SelectTrigger id="stage">
                   <SelectValue placeholder="Select a stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Lawn">Lawn</SelectItem>
-                  <SelectItem value="Main Stage">Upstairs</SelectItem>
-                  <SelectItem value="Side Stage">Downstairs</SelectItem>
+                  <SelectItem value="lawn">Lawn</SelectItem>
+                  <SelectItem value="upstairs">Upstairs</SelectItem>
+                  <SelectItem value="downstairs">Downstairs</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" type="button" disabled={isLoading}>
+                Cancel
+              </Button>
             </DialogClose>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save changes"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

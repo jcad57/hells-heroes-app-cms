@@ -1,3 +1,4 @@
+"use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -7,19 +8,30 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import data from "../data.json";
+import { z } from "zod";
+import { fetchBands } from "@/supabase/fetchBands";
+import { Band } from "@/types";
+import { useEffect, useState } from "react";
 
 export default function StagesPage() {
-  const lawnData = data
-    .filter((item) => item.stage === "Lawn")
-    .sort((a, b) => a.showTime.localeCompare(b.showTime));
-  const upstairsData = data
-    .filter((item) => item.stage === "Upstairs")
-    .sort((a, b) => a.showTime.localeCompare(b.showTime));
-  const downstairsData = data
-    .filter((item) => item.stage === "Downstairs")
-    .sort((a, b) => a.showTime.localeCompare(b.showTime));
+  const [bandsData, setBandsData] = useState<z.infer<typeof Band>[]>([]);
+
+  useEffect(() => {
+    const fetchBandsData = async () => {
+      const bands = await fetchBands();
+      setBandsData(bands);
+    };
+    fetchBandsData();
+  }, []);
+  const lawnData = bandsData
+    .filter((item) => item.stage === "lawn")
+    .sort((a, b) => a.show_time.localeCompare(b.show_time));
+  const upstairsData = bandsData
+    .filter((item) => item.stage === "upstairs")
+    .sort((a, b) => a.show_time.localeCompare(b.show_time));
+  const downstairsData = bandsData
+    .filter((item) => item.stage === "downstairs")
+    .sort((a, b) => a.show_time.localeCompare(b.show_time));
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 px-6">
@@ -38,8 +50,8 @@ export default function StagesPage() {
             <TableBody>
               {upstairsData.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.bandName}</TableCell>
-                  <TableCell>{item.showTime}</TableCell>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.show_time}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -61,8 +73,8 @@ export default function StagesPage() {
             <TableBody>
               {downstairsData.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.bandName}</TableCell>
-                  <TableCell>{item.showTime}</TableCell>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.show_time}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -84,8 +96,8 @@ export default function StagesPage() {
             <TableBody>
               {lawnData.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.bandName}</TableCell>
-                  <TableCell>{item.showTime}</TableCell>
+                  <TableCell className="font-medium">{item.name}</TableCell>
+                  <TableCell>{item.show_time}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

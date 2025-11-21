@@ -1,9 +1,10 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { SectionCards } from "@/components/section-cards";
 import { DataTable } from "@/components/data-table";
-import data from "../data.json";
+import { fetchBands } from "@/supabase/fetchBands";
 
-export default function OverviewPage() {
+export default async function OverviewPage() {
+  const bands = await fetchBands();
   return (
     <div className="grid grid-cols-1 xl:grid-cols-2">
       <div className="flex flex-col gap-4 pb-4">
@@ -12,7 +13,7 @@ export default function OverviewPage() {
           <ChartAreaInteractive />
         </div>
       </div>
-      <DataTable data={data} />
+      <DataTable data={bands} />
     </div>
   );
 }
