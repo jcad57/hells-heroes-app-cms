@@ -2,26 +2,15 @@
 
 import * as React from "react";
 import {
-  IconCamera,
   IconChartBar,
   IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
   IconInnerShadowTop,
   IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
-  IconUsers,
+  IconCalendar,
 } from "@tabler/icons-react";
 
-import { NavDocuments } from "@/components/nav-documents";
 import { NavMain } from "@/components/nav-main";
-import { NavSecondary } from "@/components/nav-secondary";
+
 import { NavUser } from "@/components/nav-user";
 import {
   Sidebar,
@@ -50,23 +39,10 @@ const navMain = [
     url: "/dashboard/stages",
     icon: IconListDetails,
   },
-];
-
-const navSecondary = [
   {
-    title: "Settings",
-    url: "#",
-    icon: IconSettings,
-  },
-  {
-    title: "Get Help",
-    url: "#",
-    icon: IconHelp,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: IconSearch,
+    title: "Show Dates",
+    url: "/dashboard/show-dates",
+    icon: IconCalendar,
   },
 ];
 
@@ -79,12 +55,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   React.useEffect(() => {
     const supabase = createClient();
-    
+
     // Get initial user
     supabase.auth.getUser().then(({ data: { user: authUser } }) => {
       if (authUser) {
         setUser({
-          name: authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "User",
+          name:
+            authUser.user_metadata?.full_name ||
+            authUser.email?.split("@")[0] ||
+            "User",
           email: authUser.email || "",
           avatar: authUser.user_metadata?.avatar_url,
         });
@@ -97,7 +76,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser({
-          name: session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "User",
+          name:
+            session.user.user_metadata?.full_name ||
+            session.user.email?.split("@")[0] ||
+            "User",
           email: session.user.email || "",
           avatar: session.user.user_metadata?.avatar_url,
         });
@@ -108,11 +90,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const defaultUser = {
-    name: "User",
-    email: "",
-  };
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -133,11 +110,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
-        {/* <NavSecondary items={navSecondary} className="mt-auto" /> */}
       </SidebarContent>
-      <SidebarFooter>
-        {user && <NavUser user={user} />}
-      </SidebarFooter>
+      <SidebarFooter>{user && <NavUser user={user} />}</SidebarFooter>
     </Sidebar>
   );
 }

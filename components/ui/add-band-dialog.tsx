@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +20,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { addBand } from "@/supabase/manage-band-data";
+import { Stage } from "@/types";
+import { fetchStages } from "@/supabase/fetchStages";
+import { FormEvent, useEffect, useState } from "react";
+import { z } from "zod";
 
 interface AddBandDialogProps {
   open: boolean;
@@ -33,13 +36,23 @@ export function AddBandDialog({
   onOpenChange,
   onBandAdded,
 }: AddBandDialogProps) {
-  const [name, setName] = React.useState("");
-  const [showDate, setShowDate] = React.useState("");
-  const [showTime, setShowTime] = React.useState("");
-  const [stage, setStage] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [name, setName] = useState("");
+  const [showDate, setShowDate] = useState("");
+  const [showTime, setShowTime] = useState("");
+  const [stage, setStage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [stagesData, setStagesData] = useState<z.infer<typeof Stage>[]>([]);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchStagesData = async () => {
+      const stages = await fetchStages();
+      setStagesData(stages);
+    };
+    fetchStagesData();
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -65,8 +78,9 @@ export function AddBandDialog({
         onBandAdded();
       }
     } catch (error) {
-      console.error("Error adding band:", error);
-      alert("Failed to add band. Please try again.");
+      setError(
+        "Failed to add band. Check formatting, otherwise please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +94,7 @@ export function AddBandDialog({
           <DialogDescription>
             Enter the band information below. Click save when you&apos;re done.
           </DialogDescription>
+          <p className="text-red-500">{error}</p>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -123,9 +138,11 @@ export function AddBandDialog({
                   <SelectValue placeholder="Select a stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lawn">Lawn</SelectItem>
-                  <SelectItem value="upstairs">Upstairs</SelectItem>
-                  <SelectItem value="downstairs">Downstairs</SelectItem>
+                  {stagesData.map((stage) => (
+                    <SelectItem key={stage.id} value={stage.stage_name}>
+                      {stage.stage_name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

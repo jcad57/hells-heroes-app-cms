@@ -37,7 +37,7 @@ export function LoginForm({
 
     try {
       await signIn(email, password);
-      
+
       // Wait for session to be set in cookies
       let attempts = 0;
       let session = null;
@@ -46,11 +46,11 @@ export function LoginForm({
         session = await getSession();
         attempts++;
       }
-      
+
       if (!session) {
         throw new Error("Session not set. Please try again.");
       }
-      
+
       // Use window.location for a full page reload to ensure cookies are read by server
       window.location.href = "/dashboard/overview";
     } catch (err: any) {
@@ -63,10 +63,10 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>HH Fest Admin Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account <br /><br />
-            For testing purposes, use the email <b>"test@test.com"</b> and password <b>"tester"</b>
+            Use your email and password to login. If you don't have an account,
+            please contact the administrator.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,7 +82,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="me@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -92,16 +92,17 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  {/* <a
+                  <a
                     href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    className="ml-auto inline-block text-xs underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </a> */}
+                  </a>
                 </div>
                 <Input
                   id="password"
                   type="password"
+                  placeholder="********"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required

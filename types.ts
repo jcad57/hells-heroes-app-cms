@@ -7,3 +7,13 @@ export const Band = z.object({
   show_time: z.string(),
   stage: z.string(),
 });
+
+export const Stage = z.object({
+  id: z.number(),
+  stage_name: z.string(),
+});
+
+export const ShowDate = z.object({
+  id: z.number(),
+  show_date: z.string(),
+});

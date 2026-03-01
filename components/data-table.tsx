@@ -2,10 +2,12 @@
 
 import * as React from "react";
 import {
+  IconChevronDown,
   IconChevronLeft,
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
+  IconChevronUp,
   IconPencil,
   IconTrash,
 } from "@tabler/icons-react";
@@ -37,7 +39,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EditBandDialog } from "@/components/ui/edit-band-dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -56,6 +57,8 @@ import {
 } from "@/components/ui/table";
 import { Band } from "@/types";
 import { deleteBand } from "@/supabase/manage-band-data";
+import { useEffect } from "react";
+import { formatShowTime } from "@/utils/format-date-helper";
 
 export function DataTable({
   data: initialData,
@@ -69,9 +72,11 @@ export function DataTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "name", desc: false },
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -114,7 +119,7 @@ export function DataTable({
   };
 
   // Update column filters when search query changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (searchQuery) {
       setColumnFilters([
         {
@@ -147,7 +152,19 @@ export function DataTable({
     },
     {
       accessorKey: "name",
-      header: "Band Name",
+      header: ({ column }) => (
+        <button
+          className="flex items-center gap-1 cursor-pointer select-none"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Band Name
+          {column.getIsSorted() === "asc" ? (
+            <IconChevronUp className="h-3.5 w-3.5" />
+          ) : column.getIsSorted() === "desc" ? (
+            <IconChevronDown className="h-3.5 w-3.5" />
+          ) : null}
+        </button>
+      ),
       cell: ({ row }) => row.original.name,
       filterFn: (row, id, value) => {
         return row.original.name.toLowerCase().includes(value.toLowerCase());
@@ -155,7 +172,19 @@ export function DataTable({
     },
     {
       accessorKey: "show_date",
-      header: "Show Date",
+      header: ({ column }) => (
+        <button
+          className="flex items-center gap-1 cursor-pointer select-none"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Show Date
+          {column.getIsSorted() === "asc" ? (
+            <IconChevronUp className="h-3.5 w-3.5" />
+          ) : column.getIsSorted() === "desc" ? (
+            <IconChevronDown className="h-3.5 w-3.5" />
+          ) : null}
+        </button>
+      ),
       cell: ({ row }) => {
         const date = new Date(row.original.show_date);
         return date.toLocaleDateString("en-US", {
@@ -167,12 +196,36 @@ export function DataTable({
     },
     {
       accessorKey: "show_time",
-      header: "Show Time",
-      cell: ({ row }) => row.original.show_time,
+      header: ({ column }) => (
+        <button
+          className="flex items-center gap-1 cursor-pointer select-none"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Show Time
+          {column.getIsSorted() === "asc" ? (
+            <IconChevronUp className="h-3.5 w-3.5" />
+          ) : column.getIsSorted() === "desc" ? (
+            <IconChevronDown className="h-3.5 w-3.5" />
+          ) : null}
+        </button>
+      ),
+      cell: ({ row }) => formatShowTime(row.original.show_time),
     },
     {
       accessorKey: "stage",
-      header: "Stage",
+      header: ({ column }) => (
+        <button
+          className="flex items-center gap-1 cursor-pointer select-none"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Stage
+          {column.getIsSorted() === "asc" ? (
+            <IconChevronUp className="h-3.5 w-3.5" />
+          ) : column.getIsSorted() === "desc" ? (
+            <IconChevronDown className="h-3.5 w-3.5" />
+          ) : null}
+        </button>
+      ),
       cell: ({ row }) => (
         <Badge
           variant="outline"
@@ -180,8 +233,8 @@ export function DataTable({
             row.original.stage === "lawn"
               ? "bg-neutral-950"
               : row.original.stage === "upstairs"
-              ? "bg-stone-900"
-              : "bg-slate-950"
+                ? "bg-stone-900"
+                : "bg-slate-950"
           }`}
         >
           {row.original.stage.charAt(0).toUpperCase() +
@@ -244,7 +297,7 @@ export function DataTable({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -260,7 +313,7 @@ export function DataTable({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
