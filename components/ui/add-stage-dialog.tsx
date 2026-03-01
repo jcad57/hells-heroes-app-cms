@@ -28,6 +28,7 @@ export function AddStageDialog({
 }: AddStageDialogProps) {
   const [stageName, setStageName] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +51,9 @@ export function AddStageDialog({
       }
     } catch (error) {
       console.error("Error adding stage:", error);
-      alert("Failed to add stage. Please try again.");
+      setError(
+        "Failed to add stage. Check formatting, otherwise please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +67,7 @@ export function AddStageDialog({
           <DialogDescription>
             Enter the stage name below. Click save when you&apos;re done.
           </DialogDescription>
+          <p className="text-red-500">{error}</p>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

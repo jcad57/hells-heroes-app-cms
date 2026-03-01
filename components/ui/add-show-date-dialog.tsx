@@ -28,6 +28,7 @@ export function AddShowDateDialog({
 }: AddShowDateDialogProps) {
   const [showDate, setShowDate] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,8 +51,9 @@ export function AddShowDateDialog({
         onShowDateAdded();
       }
     } catch (error) {
-      console.error("Error adding show date:", error);
-      alert("Failed to add show date. Please try again.");
+      setError(
+        "Failed to add show date. Check formatting, otherwise please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +68,7 @@ export function AddShowDateDialog({
             Enter the show date information below. Click save when you&apos;re
             done.
           </DialogDescription>
+          <p className="text-red-500">{error}</p>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
