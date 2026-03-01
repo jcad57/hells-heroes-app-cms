@@ -1,7 +1,7 @@
+"use server";
+
 // supabase/bandOperations.ts
-import supabaseClient from "./supabase";
-import { Band } from "@/types";
-import { z } from "zod";
+import { createServerClient } from "@/lib/auth-server";
 
 export interface BandInput {
   name: string;
@@ -12,7 +12,8 @@ export interface BandInput {
 
 // Add a new band (direct method)
 export async function addBand(bandData: BandInput) {
-  const { data, error } = await supabaseClient
+  const supabase = await createServerClient();
+  const { error } = await supabase
     .from("bands")
     .insert([bandData])
     .select()
@@ -22,12 +23,13 @@ export async function addBand(bandData: BandInput) {
     throw new Error(error.message);
   }
 
-  return data as z.infer<typeof Band>;
+  return true;
 }
 
 // Update a band (direct method)
 export async function updateBand(id: number, updates: Partial<BandInput>) {
-  const { data, error } = await supabaseClient
+  const supabase = await createServerClient();
+  const { error } = await supabase
     .from("bands")
     .update(updates)
     .eq("id", id)
@@ -38,15 +40,13 @@ export async function updateBand(id: number, updates: Partial<BandInput>) {
     throw new Error(error.message);
   }
 
-  return data as z.infer<typeof Band>;
+  return true;
 }
 
 // Delete a band (direct method)
 export async function deleteBand(bandId: number) {
-  const { error } = await supabaseClient
-    .from("bands")
-    .delete()
-    .eq("id", bandId);
+  const supabase = await createServerClient();
+  const { error } = await supabase.from("bands").delete().eq("id", bandId);
 
   if (error) {
     throw new Error(error.message);

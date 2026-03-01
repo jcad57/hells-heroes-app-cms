@@ -11,12 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { signIn, getSession } from "@/lib/auth";
 
@@ -37,8 +32,6 @@ export function LoginForm({
 
     try {
       await signIn(email, password);
-
-      // Wait for session to be set in cookies
       let attempts = 0;
       let session = null;
       while (!session && attempts < 10) {
@@ -51,7 +44,6 @@ export function LoginForm({
         throw new Error("Session not set. Please try again.");
       }
 
-      // Use window.location for a full page reload to ensure cookies are read by server
       window.location.href = "/dashboard/overview";
     } catch (err: any) {
       setError(err.message || "Failed to sign in. Please try again.");
@@ -70,7 +62,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="mt-4">
             <FieldGroup>
               {error && (
                 <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
@@ -92,12 +84,6 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-xs underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
                 </div>
                 <Input
                   id="password"

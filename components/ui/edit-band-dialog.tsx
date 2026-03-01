@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateBand } from "@/supabase/manage-band-data";
+import { Stage } from "@/types";
+import { fetchStages } from "@/supabase/fetchStages";
+import { z } from "zod";
 
 interface BandData {
   id: number;
@@ -43,21 +46,30 @@ export function EditBandDialog({
   band,
   onBandUpdated,
 }: EditBandDialogProps) {
-  const [name, setName] = React.useState(band.name);
-  const [showDate, setShowDate] = React.useState(band.show_date);
-  const [showTime, setShowTime] = React.useState(band.show_time);
-  const [stage, setStage] = React.useState(band.stage);
-  const [isLoading, setIsLoading] = React.useState(false);
-
+  const [name, setName] = useState(band.name);
+  const [showDate, setShowDate] = useState(band.show_date);
+  // Input type="time" expects "HH:mm"; Supabase stores "HH:mm:ss"
+  const [showTime, setShowTime] = useState(band.show_time.slice(0, 5));
+  const [stage, setStage] = useState(band.stage);
+  const [isLoading, setIsLoading] = useState(false);
+  const [stagesData, setStagesData] = useState<z.infer<typeof Stage>[]>([]);
   // Update form values when band prop changes
-  React.useEffect(() => {
+  useEffect(() => {
     setName(band.name);
     setShowDate(band.show_date);
-    setShowTime(band.show_time);
+    setShowTime(band.show_time.slice(0, 5));
     setStage(band.stage);
   }, [band]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchStagesData = async () => {
+      const stages = await fetchStages();
+      setStagesData(stages);
+    };
+    fetchStagesData();
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -65,7 +77,7 @@ export function EditBandDialog({
       await updateBand(band.id, {
         name,
         show_date: showDate,
-        show_time: showTime,
+        show_time: showTime.length === 5 ? `${showTime}:00` : showTime,
         stage,
       });
 
@@ -122,6 +134,7 @@ export function EditBandDialog({
               <Input
                 id="showTime"
                 name="showTime"
+                type="time"
                 value={showTime}
                 onChange={(e) => setShowTime(e.target.value)}
                 required
@@ -134,20 +147,31 @@ export function EditBandDialog({
                   <SelectValue placeholder="Select a stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="lawn">Lawn</SelectItem>
-                  <SelectItem value="upstairs">Upstairs</SelectItem>
-                  <SelectItem value="downstairs">Downstairs</SelectItem>
+                  {stagesData.map((stage) => (
+                    <SelectItem key={stage.id} value={stage.stage_name}>
+                      {stage.stage_name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isLoading}>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={isLoading}
+                className="hover:cursor-pointer"
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="hover:cursor-pointer"
+            >
               {isLoading ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>

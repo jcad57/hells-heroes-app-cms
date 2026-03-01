@@ -125,6 +125,7 @@ export function AddBandDialog({
               <Input
                 id="showTime"
                 name="showTime"
+                type="time"
                 placeholder="e.g., 5:00 pm"
                 value={showTime}
                 onChange={(e) => setShowTime(e.target.value)}
@@ -149,11 +150,20 @@ export function AddBandDialog({
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isLoading}>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={isLoading}
+                className="hover:cursor-pointer"
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="hover:cursor-pointer"
+            >
               {isLoading ? "Adding..." : "Add Band"}
             </Button>
           </DialogFooter>

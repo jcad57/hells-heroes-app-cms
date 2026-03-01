@@ -1,68 +1,65 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { z } from "zod";
-import { fetchBands } from "@/supabase/fetchBands";
 import { fetchStages } from "@/supabase/fetchStages";
-import { Band, ShowDate, Stage } from "@/types";
+import { Band, Stage } from "@/types";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AddStageDialog } from "@/components/ui/add-stage-dialog";
-import { IconTrash } from "@tabler/icons-react";
 import { deleteStage } from "@/supabase/manage-stage-data";
-import { formatShowDate, formatShowTime } from "@/utils/format-date-helper";
-import { fetchShowDates } from "@/supabase/fetchShowDates";
+import MainContentWrapper from "@/components/new-ui-components/MainContentWrapper";
+import { IconPencil, IconTrash } from "@tabler/icons-react";
+import {
+  DialogClose,
+  Dialog,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+  DialogHeader,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { fetchBands } from "@/supabase/fetchBands";
+import { EditStageDialog } from "@/components/new-ui-components/edit-stage-dialog";
 
 export default function StagesPage() {
-  const [bandsData, setBandsData] = useState<z.infer<typeof Band>[]>([]);
   const [stagesData, setStagesData] = useState<z.infer<typeof Stage>[]>([]);
-  const [showDatesData, setShowDatesData] = useState<
-    z.infer<typeof ShowDate>[]
-  >([]);
+  const [bandsData, setBandsData] = useState<z.infer<typeof Band>[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [stageToDelete, setStageToDelete] = useState<z.infer<
     typeof Stage
   > | null>(null);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [stageToEdit, setStageToEdit] = useState<z.infer<typeof Stage> | null>(
+    null,
+  );
+
+  const STAGE_COLORS = ["#f0c040", "#e05a5a", "#5ab4e0", "#a78bfa", "#34d399"];
 
   useEffect(() => {
-    const fetchBandsData = async () => {
-      const bands = await fetchBands();
-      setBandsData(bands);
-    };
     const fetchStagesData = async () => {
       const stages = await fetchStages();
       setStagesData(stages);
     };
-    const fetchShowDatesData = async () => {
-      const showDates = await fetchShowDates();
-      setShowDatesData(showDates);
+    const fetchBandsData = async () => {
+      const bands = await fetchBands();
+      setBandsData(bands);
     };
-    fetchBandsData();
+
     fetchStagesData();
-    fetchShowDatesData();
+    fetchBandsData();
   }, []);
 
   const handleDeleteClick = (stage: z.infer<typeof Stage>) => {
     setStageToDelete(stage);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (stage: z.infer<typeof Stage>) => {
+    setStageToEdit(stage);
+    setIsEditDialogOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -94,80 +91,9 @@ export default function StagesPage() {
   }, []);
 
   return (
-    <div className="px-6">
-      <div className="flex justify-between mb-4 gap-4">
-        <h1 className="text-2xl font-bold">Stages</h1>
-        <div className="flex gap-4">
-          <Button onClick={() => setIsDialogOpen(true)}>Add Stage</Button>
-          <Button onClick={() => setIsDialogOpen(true)}>Add Show Date</Button>
-        </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        {showDatesData
-          .sort((a, b) => a.show_date.localeCompare(b.show_date))
-          .map((showDate) => (
-            <div key={showDate.id}>
-              <div>
-                <h2 className="text-md pb-4">
-                  {formatShowDate(showDate.show_date)}
-                </h2>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {stagesData.map((item) => (
-                  <Card key={item.id}>
-                    <CardHeader className="">
-                      <div className="flex justify-between items-center">
-                        <CardTitle>{item.stage_name}</CardTitle>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleDeleteClick(item)}
-                        >
-                          <IconTrash className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Band Name</TableHead>
-                            <TableHead>Show Time</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {bandsData
-                            .sort((a, b) =>
-                              a.show_time.localeCompare(b.show_time),
-                            )
-                            .map((band) => {
-                              if (
-                                item.stage_name.toLowerCase() ===
-                                  band.stage.toLowerCase() &&
-                                band.show_date === showDate.show_date
-                              ) {
-                                return (
-                                  <TableRow key={band.id}>
-                                    <TableCell className="font-medium">
-                                      {band.name}
-                                    </TableCell>
-                                    <TableCell>
-                                      {formatShowTime(band.show_time)}
-                                    </TableCell>
-                                  </TableRow>
-                                );
-                              }
-                            })}
-                        </TableBody>
-                      </Table>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          ))}
+    <MainContentWrapper title="Stages">
+      <div className="flex justify-end pb-4">
+        <Button onClick={() => setIsDialogOpen(true)}>Add Stage</Button>
       </div>
       <AddStageDialog
         open={isDialogOpen}
@@ -187,10 +113,11 @@ export default function StagesPage() {
           <DialogFooter>
             <DialogClose asChild>
               <Button
-                variant="outline"
+                variant="secondary"
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setStageToDelete(null)}
+                className="hover:cursor-pointer"
               >
                 Cancel
               </Button>
@@ -199,12 +126,85 @@ export default function StagesPage() {
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
+              className="hover:cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+
+      {stageToEdit && (
+        <EditStageDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          stage={stageToEdit}
+          onStageUpdated={loadStages}
+        />
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {stagesData.map((stage) => (
+          <div
+            key={stage.id}
+            className="flex flex-col p-4 gap-2 rounded-xl border border-border bg-[#12121a] overflow-hidden"
+          >
+            <div className="flex items-center gap-2 align-center mb-2">
+              <div className="flex items-center gap-2 flex-1">
+                <div
+                  className="w-1 h-7 rounded-[2px] flex-shrink-0"
+                  style={{
+                    backgroundColor:
+                      STAGE_COLORS[stage.id % STAGE_COLORS.length],
+                  }}
+                />
+                <span
+                  className="font-bebas-neue text-[22px] tracking-wide leading-none"
+                  style={{
+                    color: STAGE_COLORS[stage.id % STAGE_COLORS.length],
+                  }}
+                >
+                  {stage.stage_name}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleEditClick(stage)}
+                disabled={isEditing}
+                className="hover:cursor-pointer"
+              >
+                <IconPencil />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDeleteClick(stage)}
+                disabled={isDeleting}
+                className="hover:cursor-pointer"
+              >
+                <IconTrash />
+              </Button>
+            </div>
+
+            <p className="text-white text-sm font-light">
+              {
+                bandsData.filter((band) => band.stage === stage.stage_name)
+                  .length
+              }{" "}
+              band
+              {bandsData.filter((band) => band.stage === stage.stage_name)
+                .length !== 1
+                ? "s"
+                : ""}{" "}
+              scheduled
+            </p>
+            <p className="text-muted-foreground text-sm font-light">
+              {stage.stage_description ?? "No description available"}
+            </p>
+          </div>
+        ))}
+      </div>
+    </MainContentWrapper>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { z } from "zod";
-import { ShowDate } from "@/types";
+import { Band, ShowDate } from "@/types";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,12 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { IconTrash } from "@tabler/icons-react";
+import { IconTrash, IconCalendar } from "@tabler/icons-react";
 import { deleteShowDate } from "@/supabase/manage-show-dates";
 import { fetchShowDates } from "@/supabase/fetchShowDates";
 import { AddShowDateDialog } from "@/components/ui/add-show-date-dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatShowDate } from "@/utils/format-date-helper";
+import { fetchBands } from "@/supabase/fetchBands";
+import MainContentWrapper from "@/components/new-ui-components/MainContentWrapper";
 
 export default function ShowDatesPage() {
   const [showDatesData, setShowDatesData] = useState<
@@ -30,13 +31,19 @@ export default function ShowDatesPage() {
   > | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [bandsData, setBandsData] = useState<z.infer<typeof Band>[]>([]);
 
   useEffect(() => {
     const fetchShowDatesData = async () => {
       const showDates = await fetchShowDates();
       setShowDatesData(showDates);
     };
+    const fetchBandsData = async () => {
+      const bands = await fetchBands();
+      setBandsData(bands);
+    };
     fetchShowDatesData();
+    fetchBandsData();
   }, []);
 
   const handleDeleteClick = (showDate: z.infer<typeof ShowDate>) => {
@@ -73,31 +80,51 @@ export default function ShowDatesPage() {
   }, []);
 
   return (
-    <div className="px-6">
-      <div className="flex justify-between mb-4 gap-4">
-        <h1 className="text-2xl font-bold">Show Dates</h1>
+    <MainContentWrapper title="Show Dates">
+      <div className="flex justify-end pb-4">
         <Button onClick={() => setIsDialogOpen(true)}>Add Show Date</Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {showDatesData.map((showDate) => (
-          <Card key={showDate.id}>
-            <CardHeader className="">
-              <div className="flex justify-between items-center">
-                <CardTitle>{formatShowDate(showDate.show_date)}</CardTitle>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {showDatesData
+          .sort((a, b) => a.show_date.localeCompare(b.show_date))
+          .map((showDate) => (
+            <div
+              key={showDate.id}
+              className="flex flex-col p-4 gap-2 rounded-xl border border-border bg-[#12121a] overflow-hidden"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 flex-1">
+                  <IconCalendar className="size-4 text-[#3A97D4] flex-shrink-0" />
+                  <span className="font-bebas-neue text-[22px] tracking-wide leading-none text-[#3A97D4]">
+                    {formatShowDate(showDate.show_date)}
+                  </span>
+                </div>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
                   onClick={() => handleDeleteClick(showDate)}
+                  disabled={isDeleting}
+                  className="hover:cursor-pointer"
                 >
-                  <IconTrash className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
+                  <IconTrash />
                 </Button>
               </div>
-            </CardHeader>
-            <CardContent></CardContent>
-          </Card>
-        ))}
+              <p className="text-sm">
+                {
+                  bandsData.filter(
+                    (band) => band.show_date === showDate.show_date,
+                  ).length
+                }{" "}
+                bands
+              </p>
+              <p className="text-muted-foreground text-sm font-light">
+                {new Date(showDate.show_date + "T00:00:00").toLocaleDateString(
+                  "en-US",
+                  { weekday: "long" },
+                )}
+              </p>
+            </div>
+          ))}
       </div>
       <AddShowDateDialog
         open={isDialogOpen}
@@ -121,10 +148,11 @@ export default function ShowDatesPage() {
           <DialogFooter>
             <DialogClose asChild>
               <Button
-                variant="outline"
+                variant="secondary"
                 type="button"
                 disabled={isDeleting}
                 onClick={() => setShowDateToDelete(null)}
+                className="hover:cursor-pointer"
               >
                 Cancel
               </Button>
@@ -133,12 +161,13 @@ export default function ShowDatesPage() {
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
+              className="hover:cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </MainContentWrapper>
   );
 }

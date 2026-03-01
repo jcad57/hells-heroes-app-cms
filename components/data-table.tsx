@@ -58,7 +58,7 @@ import {
 import { Band } from "@/types";
 import { deleteBand } from "@/supabase/manage-band-data";
 import { useEffect } from "react";
-import { formatShowTime } from "@/utils/format-date-helper";
+import { formatShowDate, formatShowTime } from "@/utils/format-date-helper";
 
 export function DataTable({
   data: initialData,
@@ -140,7 +140,7 @@ export function DataTable({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 hover:cursor-pointer"
           onClick={() => handleEditClick(row.original)}
         >
           <IconPencil className="h-4 w-4" />
@@ -186,12 +186,7 @@ export function DataTable({
         </button>
       ),
       cell: ({ row }) => {
-        const date = new Date(row.original.show_date);
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        return formatShowDate(row.original.show_date);
       },
     },
     {
@@ -249,7 +244,7 @@ export function DataTable({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 hover:cursor-pointer"
           onClick={() => handleDeleteClick(row.original)}
         >
           <IconTrash className="h-4 w-4" />
@@ -284,10 +279,10 @@ export function DataTable({
   });
 
   return (
-    <div className="flex flex-col gap-4 px-4 lg:px-6">
+    <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-lg border">
         <Table>
-          <TableHeader className="bg-muted sticky top-0 z-10">
+          <TableHeader className="bg-[#12121a] sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -432,6 +427,7 @@ export function DataTable({
                 onClick={() => {
                   setBandToDelete(null);
                 }}
+                className="hover:cursor-pointer"
               >
                 Cancel
               </Button>
@@ -440,6 +436,7 @@ export function DataTable({
               variant="destructive"
               onClick={confirmDelete}
               disabled={isDeleting}
+              className="hover:cursor-pointer"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </Button>
