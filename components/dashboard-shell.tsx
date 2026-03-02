@@ -14,6 +14,7 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconNews,
+  IconLink,
 } from "@tabler/icons-react";
 import { createClient } from "@/supabase/client";
 import { signOut } from "@/lib/auth";
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { title: "Bands", url: "/dashboard/bands", icon: IconDashboard },
   { title: "Stages", url: "/dashboard/stages", icon: IconListDetails },
   { title: "Show Dates", url: "/dashboard/show-dates", icon: IconCalendar },
+  { title: "Links", url: "/dashboard/links", icon: IconLink },
 ];
 
 // ── Presentational nav content ──────────────────────────────────────────────

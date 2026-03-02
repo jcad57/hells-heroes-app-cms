@@ -66,18 +66,6 @@ export default function OverviewPage() {
             White Oak Music Hall
           </p>
         </div>
-        <div className="sm:text-right text-muted-foreground text-sm font-light leading-relaxed">
-          <span className="block">
-            <strong className="text-foreground font-medium">
-              {loading ? "—" : showDates.length} Days
-            </strong>
-            {" · "}
-            <strong className="text-foreground font-medium">
-              {loading ? "—" : stages.length} Stages
-            </strong>
-          </span>
-          <span className="block">{loading ? "—" : bands.length} Bands</span>
-        </div>
       </header>
 
       {/* ── Day tabs ── */}
