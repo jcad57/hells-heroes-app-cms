@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { signIn, getSession } from "@/lib/auth";
+import { signIn, getSession, getUser } from "@/lib/auth";
+
+const DEFAULT_PASSWORD = "hhviii2026";
 
 export function LoginForm({
   className,
@@ -42,6 +44,17 @@ export function LoginForm({
 
       if (!session) {
         throw new Error("Session not set. Please try again.");
+      }
+
+      // Check if this is a first-time login (default password or flag set in metadata)
+      const user = await getUser();
+      const mustChangePassword =
+        user?.user_metadata?.must_change_password === true ||
+        password === DEFAULT_PASSWORD;
+
+      if (mustChangePassword) {
+        window.location.href = "/set-password";
+        return;
       }
 
       window.location.href = "/dashboard/overview";

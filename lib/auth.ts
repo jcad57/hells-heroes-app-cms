@@ -50,3 +50,17 @@ export async function getUser() {
   return user;
 }
 
+export async function updatePassword(newPassword: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword,
+    data: { must_change_password: false },
+  });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
