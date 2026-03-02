@@ -208,8 +208,7 @@ export default function OverviewPage() {
                           .map((band, bandIdx) => {
                             // Last band of the day (when >1 exists) is treated as headliner
                             const isHeadliner =
-                              bandIdx === stageBands.length - 1 &&
-                              stageBands.length > 1;
+                              bandIdx === 0 && stageBands.length > 1;
 
                             return (
                               <div
