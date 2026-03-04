@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addStage } from "@/supabase/manage-stage-data";
+import { FormEvent, useState } from "react";
 
 interface AddStageDialogProps {
   open: boolean;
@@ -26,22 +27,24 @@ export function AddStageDialog({
   onOpenChange,
   onStageAdded,
 }: AddStageDialogProps) {
-  const [stageName, setStageName] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [error, setError] = React.useState("");
+  const [stageName, setStageName] = useState("");
+  const [stageDescription, setStageDescription] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
       await addStage({
         stage_name: stageName,
+        stage_description: stageDescription,
       });
 
       // Reset form
       setStageName("");
-
+      setStageDescription("");
       // Close dialog
       onOpenChange(false);
 
@@ -80,6 +83,16 @@ export function AddStageDialog({
                 value={stageName}
                 onChange={(e) => setStageName(e.target.value)}
                 required
+              />
+            </div>
+            <div className="grid gap-3">
+              <Label htmlFor="stageName">Description</Label>
+              <Input
+                id="stageDescription"
+                name="stageDescription"
+                placeholder="Enter stage description"
+                value={stageDescription}
+                onChange={(e) => setStageDescription(e.target.value)}
               />
             </div>
           </div>

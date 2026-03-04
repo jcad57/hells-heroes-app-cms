@@ -19,7 +19,7 @@ import {
 import { createClient } from "@/supabase/client";
 import { signOut } from "@/lib/auth";
 import Image from "next/image";
-import hhlogo from "@/public/assets/images/hhlogo.png";
+import hhlogo from "@/public/assets/images/hhviii-logo.png";
 
 const NAV_ITEMS = [
   { title: "Overview", url: "/dashboard/overview", icon: IconChartBar },
@@ -58,15 +58,15 @@ function NavContent({
       {/* Logo */}
       <div
         className={[
-          "flex items-center border-b border-[#1e1e2e] flex-shrink-0 overflow-hidden",
+          "flex items-center border-b border-[#1e1e2e] flex-shrink-0 overflow-hidden hidden lg:flex",
           collapsed ? "px-4 py-5 justify-center" : "px-4 py-5 gap-3",
         ].join(" ")}
       >
         <Image
           src={hhlogo}
           alt="Hells Heroes Logo"
-          width={400}
-          height={400}
+          width={350}
+          height={350}
           className="object-contain"
         />
       </div>
@@ -265,7 +265,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         ].join(" ")}
       >
         {/* Close button */}
-        <div className="flex items-center justify-end px-4 h-14 border-b border-[#1e1e2e] flex-shrink-0">
+        <div className="flex items-center justify-between lg:justify-end px-4 h-14 border-b border-[#1e1e2e] flex-shrink-0">
+          <span className="font-bebas-neue text-xl tracking-[2px] bg-gradient-to-r from-[#3A97D4] to-white bg-clip-text text-transparent block lg:hidden">
+            Hell&apos;s Heroes
+          </span>
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Close menu"

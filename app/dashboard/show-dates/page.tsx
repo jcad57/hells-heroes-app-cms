@@ -82,7 +82,12 @@ export default function ShowDatesPage() {
   return (
     <MainContentWrapper title="Show Dates">
       <div className="flex justify-end pb-4">
-        <Button onClick={() => setIsDialogOpen(true)}>Add Show Date</Button>
+        <Button
+          onClick={() => setIsDialogOpen(true)}
+          className="hover:cursor-pointer"
+        >
+          Add Show Date
+        </Button>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {showDatesData

@@ -60,7 +60,7 @@ export default function OverviewPage() {
             Overview
           </h1>
           <p className="text-muted-foreground text-sm mt-2 font-light">
-            March 18–21, 2026 · Houston, TX
+            March 19-21, 2026 · Houston, TX
           </p>
           <p className="text-muted-foreground text-sm font-light">
             White Oak Music Hall

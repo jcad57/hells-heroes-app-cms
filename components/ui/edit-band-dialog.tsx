@@ -64,7 +64,13 @@ export function EditBandDialog({
   useEffect(() => {
     const fetchStagesData = async () => {
       const stages = await fetchStages();
-      setStagesData(stages);
+      const stagesLowerCase = stages.map((stage) => ({
+        id: stage.id,
+        stage_name: stage.stage_name.toLowerCase(),
+        stage_description: stage.stage_description,
+      }));
+
+      setStagesData(stagesLowerCase);
     };
     fetchStagesData();
   }, []);
@@ -78,7 +84,7 @@ export function EditBandDialog({
         name,
         show_date: showDate,
         show_time: showTime.length === 5 ? `${showTime}:00` : showTime,
-        stage,
+        stage: stage.toLowerCase(),
       });
 
       // Close dialog
@@ -149,7 +155,8 @@ export function EditBandDialog({
                 <SelectContent>
                   {stagesData.map((stage) => (
                     <SelectItem key={stage.id} value={stage.stage_name}>
-                      {stage.stage_name}
+                      {stage.stage_name[0].toUpperCase() +
+                        stage.stage_name.slice(1).toLowerCase()}
                     </SelectItem>
                   ))}
                 </SelectContent>

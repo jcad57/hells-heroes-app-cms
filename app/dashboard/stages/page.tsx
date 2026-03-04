@@ -189,8 +189,10 @@ export default function StagesPage() {
 
             <p className="text-white text-sm font-light">
               {
-                bandsData.filter((band) => band.stage === stage.stage_name)
-                  .length
+                bandsData.filter(
+                  (band) =>
+                    band.stage.toLowerCase() === stage.stage_name.toLowerCase(),
+                ).length
               }{" "}
               band
               {bandsData.filter((band) => band.stage === stage.stage_name)

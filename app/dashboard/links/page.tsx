@@ -66,24 +66,24 @@ const SOCIAL_PLATFORMS = [
     icon: IconBrandX,
     color: "#FFFFFF",
   },
-  {
-    key: "youtube",
-    label: "YouTube",
-    icon: IconBrandYoutube,
-    color: "#FF0000",
-  },
-  {
-    key: "tiktok",
-    label: "TikTok",
-    icon: IconBrandTiktok,
-    color: "#FFFFFF",
-  },
-  {
-    key: "spotify",
-    label: "Spotify",
-    icon: IconBrandSpotify,
-    color: "#1DB954",
-  },
+  // {
+  //   key: "youtube",
+  //   label: "YouTube",
+  //   icon: IconBrandYoutube,
+  //   color: "#FF0000",
+  // },
+  // {
+  //   key: "tiktok",
+  //   label: "TikTok",
+  //   icon: IconBrandTiktok,
+  //   color: "#FFFFFF",
+  // },
+  // {
+  //   key: "spotify",
+  //   label: "Spotify",
+  //   icon: IconBrandSpotify,
+  //   color: "#1DB954",
+  // },
 ];
 
 export default function LinksPage() {

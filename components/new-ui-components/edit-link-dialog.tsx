@@ -31,9 +31,7 @@ export function EditLinkDialog({
 }: EditLinkDialogProps) {
   const [title, setTitle] = React.useState(link.title);
   const [url, setUrl] = React.useState(link.url);
-  const [description, setDescription] = React.useState(
-    link.description ?? "",
-  );
+  const [description, setDescription] = React.useState(link.description ?? "");
   const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
@@ -68,8 +66,7 @@ export function EditLinkDialog({
         <DialogHeader>
           <DialogTitle>Edit Link</DialogTitle>
           <DialogDescription>
-            Update the link information below. Click save when you&apos;re
-            done.
+            Update the link information below. Click save when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -109,11 +106,20 @@ export function EditLinkDialog({
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isLoading}>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={isLoading}
+                className="hover:cursor-pointer"
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="hover:cursor-pointer"
+            >
               {isLoading ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>

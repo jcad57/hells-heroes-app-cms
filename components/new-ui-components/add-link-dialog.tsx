@@ -103,11 +103,20 @@ export function AddLinkDialog({
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isLoading}>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={isLoading}
+                className="hover:cursor-pointer"
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="hover:cursor-pointer"
+            >
               {isLoading ? "Adding..." : "Add Link"}
             </Button>
           </DialogFooter>

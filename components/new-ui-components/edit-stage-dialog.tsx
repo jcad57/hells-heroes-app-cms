@@ -101,17 +101,25 @@ export function EditStageDialog({
                 type="text"
                 value={stageDescription ?? ""}
                 onChange={(e) => setStageDescription(e.target.value)}
-                required
               />
             </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" type="button" disabled={isLoading}>
+              <Button
+                variant="outline"
+                type="button"
+                disabled={isLoading}
+                className="hover:cursor-pointer"
+              >
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="hover:cursor-pointer"
+            >
               {isLoading ? "Saving..." : "Save changes"}
             </Button>
           </DialogFooter>
