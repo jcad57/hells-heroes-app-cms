@@ -18,6 +18,7 @@ interface GenericDeleteDialogProps {
   itemName: string;
   isDeleting: boolean;
   onConfirm: () => Promise<void>;
+  error?: string | null;
 }
 
 export function GenericDeleteDialog({
@@ -27,6 +28,7 @@ export function GenericDeleteDialog({
   itemName,
   isDeleting,
   onConfirm,
+  error,
 }: GenericDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -39,6 +41,11 @@ export function GenericDeleteDialog({
             cannot be undone.
           </DialogDescription>
         </DialogHeader>
+        {error && (
+          <p className="text-sm text-destructive rounded-md bg-destructive/10 px-3 py-2">
+            {error}
+          </p>
+        )}
         <DialogFooter>
           <DialogClose asChild>
             <Button

@@ -84,6 +84,7 @@ export default function LinksPage() {
 
   const [dialogConfig, setDialogConfig] = useState<DialogConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [editingPlatform, setEditingPlatform] = useState<string | null>(null);
   const [editingUrl, setEditingUrl] = useState("");
@@ -133,10 +134,12 @@ export default function LinksPage() {
   }, []);
 
   const openDialog = (type: EntityType, mode: DialogMode, item?: any) => {
+    setDeleteError(null);
     setDialogConfig({ type, mode, item });
   };
 
   const closeDialog = () => {
+    setDeleteError(null);
     setDialogConfig(null);
   };
 
@@ -153,7 +156,7 @@ export default function LinksPage() {
           },
           {
             name: "url",
-            label: "URL",
+            label: "URL (must include https://...)",
             type: "url" as const,
             required: true,
             placeholder: "https://...",
@@ -201,7 +204,7 @@ export default function LinksPage() {
           },
           {
             name: "url",
-            label: "URL",
+            label: "URL (must include https://...)",
             type: "url" as const,
             required: true,
             placeholder: "https://...",
@@ -279,6 +282,7 @@ export default function LinksPage() {
 
     const { type, item } = dialogConfig;
     setIsDeleting(true);
+    setDeleteError(null);
 
     try {
       if (type === "external-link") {
@@ -294,6 +298,11 @@ export default function LinksPage() {
       closeDialog();
     } catch (error) {
       console.error("Error deleting item:", error);
+      setDeleteError(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete. Please try again.",
+      );
     } finally {
       setIsDeleting(false);
     }
@@ -352,11 +361,11 @@ export default function LinksPage() {
   return (
     <MainContentWrapper title="Links">
       <LinkSection
-        title="External Links"
-        description="Ticket upgrades, venue information, local businesses and other resources displayed in the app."
+        title="Festival Links"
+        description="Ticket upgrades, venue information, etc. displayed in the app."
         items={links}
         colors={LINK_COLORS}
-        emptyMessage='No external links yet. Click "Add Link" to get started.'
+        emptyMessage='No festival links yet. Click "Add Link" to get started.'
         onAdd={() => openDialog("external-link", "add")}
         onEdit={(item) => openDialog("external-link", "edit", item)}
         onDelete={(item) => openDialog("external-link", "delete", item)}
@@ -539,6 +548,7 @@ export default function LinksPage() {
           itemName={getItemName()}
           isDeleting={isDeleting}
           onConfirm={handleDelete}
+          error={deleteError}
         />
       )}
     </MainContentWrapper>

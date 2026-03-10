@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import MainContentWrapper from "@/components/new-ui-components/MainContentWrapper";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,8 +19,6 @@ import {
   IconTrash,
   IconDeviceFloppy,
   IconEye,
-  IconPencil,
-  IconClock,
   IconAlignLeft,
 } from "@tabler/icons-react";
 import { fetchNewsFeed } from "@/supabase/fetchNewsFeed";
@@ -32,17 +30,15 @@ import {
 import { z } from "zod";
 import { NewsFeedItem } from "@/types";
 
+import NewsfeedPost from "@/components/new-ui-components/newsfeed/NewsfeedPost";
+import NoPostsCard from "@/components/new-ui-components/newsfeed/NoPostsCard";
+import NewPostButton from "@/components/new-ui-components/newsfeed/NewPostButton";
+import EmptyEditorCard from "@/components/new-ui-components/newsfeed/EmptyEditorCard";
+
 type Post = z.infer<typeof NewsFeedItem>;
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
 export default function NewsFeedPage() {
+  const [isPending, startTransition] = useTransition();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -72,11 +68,13 @@ export default function NewsFeedPage() {
   }, []);
 
   const handleSelectPost = (post: Post) => {
-    setSelectedPost(post);
-    setTitle(post.title);
-    setBody(post.body);
-    setIsNewPost(false);
-    setShowPreview(false);
+    startTransition(() => {
+      setSelectedPost(post);
+      setTitle(post.title);
+      setBody(post.body);
+      setIsNewPost(false);
+      setShowPreview(false);
+    });
   };
 
   const handleNewPost = () => {
@@ -137,13 +135,7 @@ export default function NewsFeedPage() {
       <div className="flex flex-col lg:flex-row gap-6 min-h-[calc(100vh-260px)]">
         {/* ── Left panel: post list ── */}
         <div className="lg:w-72 flex-shrink-0 flex flex-col gap-3">
-          <Button
-            onClick={handleNewPost}
-            className="w-full hover:cursor-pointer"
-          >
-            <IconPlus className="size-4 mr-2" />
-            New Post
-          </Button>
+          <NewPostButton handleNewPost={handleNewPost} />
 
           <div className="flex flex-col gap-2 overflow-y-auto">
             {loading ? (
@@ -151,48 +143,17 @@ export default function NewsFeedPage() {
                 Loading…
               </p>
             ) : posts.length === 0 ? (
-              <div className="rounded-xl border border-[#1e1e2e] bg-[#12121a] p-6 text-center">
-                <IconAlignLeft className="size-6 text-[#6b6b80] mx-auto mb-2" />
-                <p className="text-[#6b6b80] text-sm">No posts yet.</p>
-                <p className="text-[#6b6b80] text-xs mt-1">
-                  Create your first newsfeed post.
-                </p>
-              </div>
+              <NoPostsCard />
             ) : (
               posts.map((post) => {
                 const isActive = selectedPost?.id === post.id && !isNewPost;
                 return (
-                  <button
+                  <NewsfeedPost
                     key={post.id}
-                    onClick={() => handleSelectPost(post)}
-                    className={[
-                      "text-left w-full p-4 rounded-xl border transition-all duration-200 group",
-                      isActive
-                        ? "border-[#3A97D4]/50 bg-[#3A97D4]/5"
-                        : "border-[#1e1e2e] bg-[#12121a] hover:border-[#2e2e3e] hover:bg-[#1a1a24]",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <p
-                        className={[
-                          "font-medium text-sm truncate",
-                          isActive ? "text-[#3A97D4]" : "text-[#e8e8f0]",
-                        ].join(" ")}
-                      >
-                        {post.title}
-                      </p>
-                      {isActive && (
-                        <IconPencil className="size-3 text-[#3A97D4] flex-shrink-0 mt-0.5 hover:cursor-pointer" />
-                      )}
-                    </div>
-                    <p className="text-xs text-[#6b6b80] mt-1.5 line-clamp-2 leading-relaxed">
-                      {post.body}
-                    </p>
-                    <p className="text-[11px] text-[#6b6b80] mt-2.5 flex items-center gap-1">
-                      <IconClock className="size-3" />
-                      {formatDate(post.created_at)}
-                    </p>
-                  </button>
+                    post={post}
+                    isActive={isActive}
+                    handleSelectPost={handleSelectPost}
+                  />
                 );
               })
             )}
@@ -202,22 +163,7 @@ export default function NewsFeedPage() {
         {/* ── Right panel: editor ── */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
           {!isEditorOpen ? (
-            /* Empty state */
-            <div className="flex-1 flex flex-col items-center justify-center rounded-xl border border-[#1e1e2e] bg-[#12121a] p-10 text-center">
-              <IconAlignLeft className="size-10 text-[#2e2e3e] mb-4" />
-              <p className="text-[#6b6b80] text-sm">
-                Select a post to edit or create a new one
-              </p>
-              <Button
-                onClick={handleNewPost}
-                variant="outline"
-                size="sm"
-                className="mt-4 hover:cursor-pointer"
-              >
-                <IconPlus className="size-4 mr-1" />
-                New Post
-              </Button>
-            </div>
+            <EmptyEditorCard handleNewPost={handleNewPost} />
           ) : (
             <>
               {/* Editor toolbar */}

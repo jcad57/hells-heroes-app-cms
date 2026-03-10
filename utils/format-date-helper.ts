@@ -11,6 +11,15 @@ export function formatShowDate(dateStr: string | null | undefined): string {
   });
 }
 
+/** Converts "YYYY-MM-DD" (e.g. "2026-03-19") to "Mar 19, 2026"  */
+export function formatDateShort(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 /** Converts "HH:mm:ss" (e.g. "20:00:00") to "h:mm am/pm" (e.g. "8:00 pm"). */
 export function formatShowTime(timeStr: string | null | undefined): string {
   if (!timeStr) return "—";

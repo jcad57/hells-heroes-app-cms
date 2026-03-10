@@ -32,11 +32,14 @@ export async function updateLink(id: number, updates: Partial<LinkInput>) {
 
 export async function deleteLink(id: number) {
   const supabase = await createServerClient();
-  const { error } = await supabase.from("links").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("links")
+    .delete()
+    .eq("id", id)
+    .select();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) throw new Error("Delete failed: no matching row found. Check Supabase RLS policies for the links table.");
 
   return true;
 }
@@ -105,14 +108,14 @@ export async function updateLocalFood(
 
 export async function deleteLocalFood(id: number) {
   const supabase = await createServerClient();
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("local_food_and_drinks")
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .select();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) throw new Error("Delete failed: no matching row found. Check Supabase RLS policies for the local_food_and_drinks table.");
 
   return true;
 }
@@ -147,11 +150,14 @@ export async function updateVendor(id: number, updates: Partial<VendorInput>) {
 
 export async function deleteVendor(id: number) {
   const supabase = await createServerClient();
-  const { error } = await supabase.from("vendors").delete().eq("id", id);
+  const { data, error } = await supabase
+    .from("vendors")
+    .delete()
+    .eq("id", id)
+    .select();
 
-  if (error) {
-    throw new Error(error.message);
-  }
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) throw new Error("Delete failed: no matching row found. Check Supabase RLS policies for the vendors table.");
 
   return true;
 }
