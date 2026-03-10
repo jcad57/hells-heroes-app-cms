@@ -13,48 +13,40 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { updateLink } from "@/supabase/manage-links";
-import type { LinkItem } from "@/supabase/fetchLinks";
+import { addLink } from "@/supabase/manage-links";
 
-interface EditLinkDialogProps {
+interface AddLocalFoodDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  link: LinkItem;
-  onLinkUpdated?: () => void;
+  onLinkAdded?: () => void;
 }
 
-export function EditLinkDialog({
+export default function AddLocalFoodDialog({
   open,
   onOpenChange,
-  link,
-  onLinkUpdated,
-}: EditLinkDialogProps) {
-  const [title, setTitle] = React.useState(link.title);
-  const [url, setUrl] = React.useState(link.url);
-  const [description, setDescription] = React.useState(link.description ?? "");
+  onLinkAdded,
+}: AddLocalFoodDialogProps) {
+  const [title, setTitle] = React.useState("");
+  const [url, setUrl] = React.useState("");
+  const [description, setDescription] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    setTitle(link.title);
-    setUrl(link.url);
-    setDescription(link.description ?? "");
-  }, [link]);
+  const [error, setError] = React.useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
     try {
-      await updateLink(link.id, {
-        title,
-        url,
-        description: description || null,
-      });
+      await addLink({ title, url, description: description || null });
+      setTitle("");
+      setUrl("");
+      setDescription("");
       onOpenChange(false);
-      onLinkUpdated?.();
-    } catch (error) {
-      console.error("Error updating link:", error);
-      alert("Failed to update link. Please try again.");
+      onLinkAdded?.();
+    } catch (err) {
+      console.error("Error adding link:", err);
+      setError("Failed to add link. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -64,41 +56,46 @@ export function EditLinkDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Edit Link</DialogTitle>
+          <DialogTitle>Add External Link</DialogTitle>
           <DialogDescription>
-            Update the link information below. Click save when you&apos;re done.
+            Add a new link to display in the app. Click save when you&apos;re
+            done.
           </DialogDescription>
+          {error && <p className="text-sm text-red-500">{error}</p>}
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-3">
-              <Label htmlFor="edit-link-title">Title</Label>
+              <Label htmlFor="link-title">Title</Label>
               <Input
-                id="edit-link-title"
+                id="link-title"
+                placeholder="e.g. Buy Tickets, Venue Info"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="edit-link-url">URL</Label>
+              <Label htmlFor="link-url">URL</Label>
               <Input
-                id="edit-link-url"
+                id="link-url"
                 type="url"
+                placeholder="https://..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 required
               />
             </div>
             <div className="grid gap-3">
-              <Label htmlFor="edit-link-description">
+              <Label htmlFor="link-description">
                 Description{" "}
                 <span className="text-muted-foreground font-normal">
                   (optional)
                 </span>
               </Label>
               <Input
-                id="edit-link-description"
+                id="link-description"
+                placeholder="Brief description shown in the app"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
               />
@@ -120,7 +117,7 @@ export function EditLinkDialog({
               disabled={isLoading}
               className="hover:cursor-pointer"
             >
-              {isLoading ? "Saving..." : "Save Changes"}
+              {isLoading ? "Adding..." : "Add Link"}
             </Button>
           </DialogFooter>
         </form>

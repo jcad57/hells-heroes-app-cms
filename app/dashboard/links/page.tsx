@@ -1,41 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import MainContentWrapper from "@/components/new-ui-components/MainContentWrapper";
-import { AddLinkDialog } from "@/components/new-ui-components/add-link-dialog";
-import { EditLinkDialog } from "@/components/new-ui-components/edit-link-dialog";
+import { LinkSection } from "@/components/links-management/link-section";
+import { GenericItemDialog } from "@/components/links-management/generic-item-dialog";
+import { GenericDeleteDialog } from "@/components/links-management/generic-delete-dialog";
 import { fetchLinks, type LinkItem } from "@/supabase/fetchLinks";
 import {
   fetchSocialLinks,
   type SocialLinkItem,
 } from "@/supabase/fetchSocialLinks";
+import { fetchLocalFood } from "@/supabase/fetchLocalFood";
+import { fetchVendors } from "@/supabase/fetchVendors";
+import type { LocalFoodItem, VendorItem } from "@/types/link-types";
 import {
+  addLink,
+  updateLink,
   deleteLink,
+  addLocalFood,
+  updateLocalFood,
+  deleteLocalFood,
+  addVendor,
+  updateVendor,
+  deleteVendor,
   upsertSocialLink,
   deleteSocialLink,
 } from "@/supabase/manage-links";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   IconPencil,
   IconTrash,
   IconExternalLink,
-  IconLink,
   IconBrandInstagram,
   IconBrandFacebook,
   IconBrandX,
-  IconBrandYoutube,
-  IconBrandTiktok,
-  IconBrandSpotify,
 } from "@tabler/icons-react";
 
 const LINK_COLORS = [
@@ -66,39 +65,26 @@ const SOCIAL_PLATFORMS = [
     icon: IconBrandX,
     color: "#FFFFFF",
   },
-  // {
-  //   key: "youtube",
-  //   label: "YouTube",
-  //   icon: IconBrandYoutube,
-  //   color: "#FF0000",
-  // },
-  // {
-  //   key: "tiktok",
-  //   label: "TikTok",
-  //   icon: IconBrandTiktok,
-  //   color: "#FFFFFF",
-  // },
-  // {
-  //   key: "spotify",
-  //   label: "Spotify",
-  //   icon: IconBrandSpotify,
-  //   color: "#1DB954",
-  // },
 ];
+
+type DialogMode = "add" | "edit" | "delete" | null;
+type EntityType = "external-link" | "local-food" | "vendor";
+
+interface DialogConfig {
+  type: EntityType;
+  mode: DialogMode;
+  item?: any;
+}
 
 export default function LinksPage() {
   const [links, setLinks] = useState<LinkItem[]>([]);
+  const [localFood, setLocalFood] = useState<LocalFoodItem[]>([]);
+  const [vendors, setVendors] = useState<VendorItem[]>([]);
   const [socialLinks, setSocialLinks] = useState<SocialLinkItem[]>([]);
 
-  // External link dialog state
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [linkToEdit, setLinkToEdit] = useState<LinkItem | null>(null);
-  const [linkToDelete, setLinkToDelete] = useState<LinkItem | null>(null);
+  const [dialogConfig, setDialogConfig] = useState<DialogConfig | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Social link inline-edit state
   const [editingPlatform, setEditingPlatform] = useState<string | null>(null);
   const [editingUrl, setEditingUrl] = useState("");
   const [isSavingSocial, setIsSavingSocial] = useState(false);
@@ -109,6 +95,24 @@ export default function LinksPage() {
       setLinks(data);
     } catch (error) {
       console.error("Error fetching links:", error);
+    }
+  };
+
+  const loadLocalFood = async () => {
+    try {
+      const data = await fetchLocalFood();
+      setLocalFood(data);
+    } catch (error) {
+      console.error("Error fetching local food:", error);
+    }
+  };
+
+  const loadVendors = async () => {
+    try {
+      const data = await fetchVendors();
+      setVendors(data);
+    } catch (error) {
+      console.error("Error fetching vendors:", error);
     }
   };
 
@@ -123,37 +127,177 @@ export default function LinksPage() {
 
   useEffect(() => {
     loadLinks();
+    loadLocalFood();
+    loadVendors();
     loadSocialLinks();
   }, []);
 
-  // ── External links handlers ──────────────────────────────────────────────
-
-  const handleEditClick = (link: LinkItem) => {
-    setLinkToEdit(link);
-    setIsEditDialogOpen(true);
+  const openDialog = (type: EntityType, mode: DialogMode, item?: any) => {
+    setDialogConfig({ type, mode, item });
   };
 
-  const handleDeleteClick = (link: LinkItem) => {
-    setLinkToDelete(link);
-    setIsDeleteDialogOpen(true);
+  const closeDialog = () => {
+    setDialogConfig(null);
   };
 
-  const confirmDelete = async () => {
-    if (!linkToDelete) return;
-    setIsDeleting(true);
+  const getDialogFields = (type: EntityType) => {
+    switch (type) {
+      case "external-link":
+        return [
+          {
+            name: "title",
+            label: "Title",
+            type: "text" as const,
+            required: true,
+            placeholder: "e.g. Buy Tickets, Venue Info",
+          },
+          {
+            name: "url",
+            label: "URL",
+            type: "url" as const,
+            required: true,
+            placeholder: "https://...",
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "textarea" as const,
+            required: false,
+            placeholder: "Brief description shown in the app",
+          },
+        ];
+      case "local-food":
+        return [
+          {
+            name: "name",
+            label: "Name",
+            type: "text" as const,
+            required: true,
+            placeholder: "e.g. Local Brewery, Restaurant",
+          },
+          {
+            name: "address",
+            label: "Address",
+            type: "text" as const,
+            required: true,
+            placeholder: "123 Main St, City, State",
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "textarea" as const,
+            required: false,
+            placeholder: "Brief description of the establishment",
+          },
+        ];
+      case "vendor":
+        return [
+          {
+            name: "name",
+            label: "Name",
+            type: "text" as const,
+            required: true,
+            placeholder: "e.g. Vendor Name",
+          },
+          {
+            name: "url",
+            label: "URL",
+            type: "url" as const,
+            required: true,
+            placeholder: "https://...",
+          },
+          {
+            name: "description",
+            label: "Description",
+            type: "textarea" as const,
+            required: false,
+            placeholder: "Brief description of the vendor",
+          },
+        ];
+    }
+  };
+
+  const handleDialogSubmit = async (data: Record<string, any>) => {
+    if (!dialogConfig) return;
+
+    const { type, mode, item } = dialogConfig;
+
     try {
-      await deleteLink(linkToDelete.id);
-      setIsDeleteDialogOpen(false);
-      setLinkToDelete(null);
-      await loadLinks();
+      if (type === "external-link") {
+        if (mode === "add") {
+          await addLink(
+            data as { title: string; url: string; description?: string | null },
+          );
+        } else if (mode === "edit" && item) {
+          await updateLink(
+            item.id,
+            data as { title: string; url: string; description?: string | null },
+          );
+        }
+        await loadLinks();
+      } else if (type === "local-food") {
+        if (mode === "add") {
+          await addLocalFood(
+            data as {
+              name: string;
+              address: string;
+              description?: string | null;
+            },
+          );
+        } else if (mode === "edit" && item) {
+          await updateLocalFood(
+            item.id,
+            data as {
+              name: string;
+              address: string;
+              description?: string | null;
+            },
+          );
+        }
+        await loadLocalFood();
+      } else if (type === "vendor") {
+        if (mode === "add") {
+          await addVendor(
+            data as { name: string; url: string; description?: string | null },
+          );
+        } else if (mode === "edit" && item) {
+          await updateVendor(
+            item.id,
+            data as { name: string; url: string; description?: string | null },
+          );
+        }
+        await loadVendors();
+      }
     } catch (error) {
-      console.error("Error deleting link:", error);
+      console.error("Error submitting dialog:", error);
+      throw error;
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!dialogConfig?.item) return;
+
+    const { type, item } = dialogConfig;
+    setIsDeleting(true);
+
+    try {
+      if (type === "external-link") {
+        await deleteLink(item.id);
+        await loadLinks();
+      } else if (type === "local-food") {
+        await deleteLocalFood(item.id);
+        await loadLocalFood();
+      } else if (type === "vendor") {
+        await deleteVendor(item.id);
+        await loadVendors();
+      }
+      closeDialog();
+    } catch (error) {
+      console.error("Error deleting item:", error);
     } finally {
       setIsDeleting(false);
     }
   };
-
-  // ── Social links handlers ────────────────────────────────────────────────
 
   const handleEditSocial = (platformKey: string) => {
     const existing = socialLinks.find((s) => s.platform === platformKey);
@@ -185,105 +329,79 @@ export default function LinksPage() {
     }
   };
 
+  const getDialogTitle = () => {
+    if (!dialogConfig) return "";
+    const { type, mode } = dialogConfig;
+    const action = mode === "add" ? "Add" : mode === "edit" ? "Edit" : "Delete";
+    const entity =
+      type === "external-link"
+        ? "External Link"
+        : type === "local-food"
+          ? "Local Food & Drinks"
+          : "Vendor";
+    return `${action} ${entity}`;
+  };
+
+  const getItemName = () => {
+    if (!dialogConfig?.item) return "";
+    const { type, item } = dialogConfig;
+    if (type === "external-link") return item.title;
+    return item.name;
+  };
+
   return (
     <MainContentWrapper title="Links">
-      {/* ── External Links Section ─────────────────────────────────────────── */}
-      <div className="mb-10">
-        <div className="flex items-end justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold tracking-wide">
-              External Links
-            </h2>
-            <p className="text-muted-foreground text-sm mt-1">
-              Ticket upgrades, venue information, local businesses and other
-              resources displayed in the app.
-            </p>
-          </div>
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="hover:cursor-pointer"
-          >
-            Add Link
-          </Button>
-        </div>
+      <LinkSection
+        title="External Links"
+        description="Ticket upgrades, venue information, local businesses and other resources displayed in the app."
+        items={links}
+        colors={LINK_COLORS}
+        emptyMessage='No external links yet. Click "Add Link" to get started.'
+        onAdd={() => openDialog("external-link", "add")}
+        onEdit={(item) => openDialog("external-link", "edit", item)}
+        onDelete={(item) => openDialog("external-link", "delete", item)}
+        isDeleting={isDeleting}
+        getItemTitle={(item) => item.title}
+        getItemSubtitle={(item) => item.url}
+        getItemDescription={(item) => item.description}
+      />
 
-        {links.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 rounded-xl border border-dashed border-border text-muted-foreground gap-3">
-            <IconLink size={34} className="opacity-30" />
-            <p className="text-sm">
-              No external links yet. Click &quot;Add Link&quot; to get started.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {links.map((link, index) => {
-              const color = LINK_COLORS[index % LINK_COLORS.length];
-              return (
-                <div
-                  key={link.id}
-                  className="flex flex-col p-4 gap-2 rounded-xl border border-border bg-[#12121a] overflow-hidden"
-                >
-                  {/* Card header: title + action buttons */}
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div
-                        className="w-1 h-7 rounded-[2px] flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                      />
-                      <span
-                        className="font-bebas-neue text-[20px] tracking-wide leading-none truncate"
-                        style={{ color }}
-                      >
-                        {link.title}
-                      </span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEditClick(link)}
-                      className="hover:cursor-pointer flex-shrink-0"
-                    >
-                      <IconPencil size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDeleteClick(link)}
-                      disabled={isDeleting}
-                      className="hover:cursor-pointer flex-shrink-0"
-                    >
-                      <IconTrash size={16} />
-                    </Button>
-                  </div>
-
-                  {/* URL */}
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-xs text-[#3A97D4] hover:underline"
-                  >
-                    <IconExternalLink size={11} className="flex-shrink-0" />
-                    <span className="truncate">{link.url}</span>
-                  </a>
-
-                  {/* Description */}
-                  {link.description && (
-                    <p className="text-muted-foreground text-sm font-light leading-snug">
-                      {link.description}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* ── Divider ──────────────────────────────────────────────────────────── */}
       <div className="border-t border-border mb-10" />
 
-      {/* ── Social Links Section ──────────────────────────────────────────────── */}
+      <LinkSection
+        title="Local Food & Drinks"
+        description="Local restaurants, bars, and food vendors near the festival venue."
+        items={localFood}
+        colors={LINK_COLORS}
+        emptyMessage='No local food & drinks yet. Click "Add Item" to get started.'
+        onAdd={() => openDialog("local-food", "add")}
+        onEdit={(item) => openDialog("local-food", "edit", item)}
+        onDelete={(item) => openDialog("local-food", "delete", item)}
+        isDeleting={isDeleting}
+        getItemTitle={(item) => item.name}
+        getItemSubtitle={(item) => item.address}
+        getItemDescription={(item) => item.description}
+      />
+
+      <div className="border-t border-border mb-10" />
+
+      <LinkSection
+        title="Vendor List"
+        description="Festival vendors, merchandise shops, and service providers."
+        items={vendors}
+        colors={LINK_COLORS}
+        emptyMessage='No vendors yet. Click "Add Item" to get started.'
+        onAdd={() => openDialog("vendor", "add")}
+        onEdit={(item) => openDialog("vendor", "edit", item)}
+        onDelete={(item) => openDialog("vendor", "delete", item)}
+        isDeleting={isDeleting}
+        getItemTitle={(item) => item.name}
+        getItemSubtitle={(item) => item.url}
+        getItemDescription={(item) => item.description}
+      />
+
+      <div className="border-t border-border mb-10" />
+
       <div>
         <div className="mb-6">
           <h2 className="text-xl font-semibold tracking-wide">Social Links</h2>
@@ -303,7 +421,6 @@ export default function LinksPage() {
                 key={key}
                 className="flex flex-col p-4 gap-3 rounded-xl border border-border bg-[#12121a]"
               >
-                {/* Platform header */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <div
@@ -340,12 +457,11 @@ export default function LinksPage() {
                   )}
                 </div>
 
-                {/* Inline edit or URL display */}
                 {isEditing ? (
                   <div className="flex flex-col gap-2">
                     <Input
                       type="url"
-                      placeholder={`https://`}
+                      placeholder="https://"
                       value={editingUrl}
                       onChange={(e) => setEditingUrl(e.target.value)}
                       autoFocus
@@ -399,56 +515,32 @@ export default function LinksPage() {
         </div>
       </div>
 
-      {/* ── Dialogs ──────────────────────────────────────────────────────────── */}
-
-      <AddLinkDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
-        onLinkAdded={loadLinks}
-      />
-
-      {linkToEdit && (
-        <EditLinkDialog
-          open={isEditDialogOpen}
-          onOpenChange={setIsEditDialogOpen}
-          link={linkToEdit}
-          onLinkUpdated={loadLinks}
+      {dialogConfig?.mode !== "delete" && (
+        <GenericItemDialog
+          open={dialogConfig?.mode === "add" || dialogConfig?.mode === "edit"}
+          onOpenChange={(open) => !open && closeDialog()}
+          title={getDialogTitle()}
+          description={
+            dialogConfig?.mode === "add"
+              ? "Fill in the details below to add a new item."
+              : "Update the information below."
+          }
+          fields={getDialogFields(dialogConfig?.type || "external-link")}
+          initialData={dialogConfig?.item}
+          onSubmit={handleDialogSubmit}
         />
       )}
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Delete Link</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete{" "}
-              <span className="font-semibold">{linkToDelete?.title}</span>? This
-              action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                variant="secondary"
-                type="button"
-                disabled={isDeleting}
-                onClick={() => setLinkToDelete(null)}
-                className="hover:cursor-pointer"
-              >
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              variant="destructive"
-              onClick={confirmDelete}
-              disabled={isDeleting}
-              className="hover:cursor-pointer"
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {dialogConfig?.mode === "delete" && (
+        <GenericDeleteDialog
+          open={true}
+          onOpenChange={(open) => !open && closeDialog()}
+          title={getDialogTitle()}
+          itemName={getItemName()}
+          isDeleting={isDeleting}
+          onConfirm={handleDelete}
+        />
+      )}
     </MainContentWrapper>
   );
 }
