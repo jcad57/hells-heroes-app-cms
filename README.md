@@ -9,6 +9,7 @@ This CMS was built to assist the HH team in managing their [festival APP](https:
 3. Stage overview tab that will allow (when completed) users to get a snapshot of the lineup per stage per day.
 
 ## Screenshots
-<img width="800"  alt="HHCMS2" src="https://github.com/user-attachments/assets/4c17c09d-684b-4f5a-8c33-d27df3afa514" />
-<img width="800"  alt="HHCMS3" src="https://github.com/user-attachments/assets/99a88fd6-b9ec-4ec3-bd3f-8cf5fe4ca61e" />
-<img width="800" alt="HHCMS4" src="https://github.com/user-attachments/assets/9e597232-a8cc-4bfa-81ca-202ef8b74e39" />
+<img width="850" src="https://github.com/user-attachments/assets/25be4797-5503-4b4e-9f72-96870a21cb91" />
+<img width="850" src="https://github.com/user-attachments/assets/dc903ef5-32e9-4561-8a9c-a38d1bd0a8ee" />
+<img width="850" src="https://github.com/user-attachments/assets/8d4da125-d488-465f-9a57-271a86d730d6" />
+<img width="850" src="https://github.com/user-attachments/assets/5c6c9bf3-2d1c-4d57-b5ff-4d4ebacc0cec" />
