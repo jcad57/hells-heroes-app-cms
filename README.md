@@ -1,12 +1,11 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## HH VIII CMS 🤘
-<i>⚠ This CMS is still being developed! The data used is mock data for testing</i>
 
 This CMS was built to assist the HH team in managing their [festival APP](https://github.com/jcad57/hells-heroes-viii). It features: 
-1. App analytics (total users per day, total downloads, current active users)
+1. Main page snapshot of the entire app allowing app managers to get a good idea of the entire data flowing into the app.
 2. Complete lineup list that allow users to add, delete and edit band information like name, stage they play on and time.
-3. Stage overview tab that will allow (when completed) users to get a snapshot of the lineup per stage per day.
+3. Add and manage stages, vendors and businesses. 
 
 ## Screenshots
 <img width="850" src="https://github.com/user-attachments/assets/25be4797-5503-4b4e-9f72-96870a21cb91" />
